@@ -11,7 +11,8 @@
     "migrate": "node database/migrate.js",
     "clear-demo": "node database/clear-demo.js",
     "reset-db": "node database/reset-db.js",
-    "view-db": "node database/view-db.js"
+    "view-db": "node database/view-db.js",
+    "delete-user": "node database/delete-user.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
