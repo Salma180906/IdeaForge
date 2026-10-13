@@ -327,15 +327,15 @@ export default function Landing() {
             </Link>
           </div>
 
-          <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginTop: '28px', fontSize: '12px', color: 'var(--ink-3)' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <CheckCircle2 size={14} style={{ color: 'var(--lime)' }} /> 100% Cryptographic Audit Trail
+          <div className="hero-trust-row">
+            <span className="hero-trust-item">
+              <CheckCircle2 size={13} className="trust-icon" /> 100% Cryptographic Audit Trail
             </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <CheckCircle2 size={14} style={{ color: 'var(--lime)' }} /> OpenID 2.0 Google &amp; GitHub SSO
+            <span className="hero-trust-item">
+              <CheckCircle2 size={13} className="trust-icon" /> OpenID 2.0 Google &amp; GitHub SSO
             </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <CheckCircle2 size={14} style={{ color: 'var(--lime)' }} /> Bank-Grade 2FA MFA
+            <span className="hero-trust-item">
+              <CheckCircle2 size={13} className="trust-icon" /> Bank-Grade 2FA MFA
             </span>
           </div>
         </div>

@@ -169,26 +169,37 @@ export default function HeroLog() {
       </div>
 
       {/* Evolution timeline steps */}
-      <ol className="herolog-list">
-        {EVOLUTION_STEPS.slice(0, currentIdx + 1).map((s) => (
-          <li
-            key={s.version}
-            className={`shown ${s.version === activeStep.version ? 'highlight' : ''}`}
-            style={{ '--c': heatForVersion(s.version) }}
-            onClick={() => handleSelectVersion(s.version - 1)}
-          >
-            <span className="herolog-dot" aria-hidden="true" />
-            <div>
-              <p className="prose">{s.summary}</p>
-              <span className="author">
-                <Avatar name={s.who} size={16} />
-                {s.who}
-                <b className="herolog-tag">v{s.version}.0</b>
-              </span>
+      <div className="sandbox-timeline-wrap">
+        <div className="sandbox-timeline-header">
+          <span>Version Lineage Timeline</span>
+          <span className="timeline-hint">Click version to inspect</span>
+        </div>
+        <div className="herolog-list">
+          {EVOLUTION_STEPS.slice(0, currentIdx + 1).map((s) => (
+            <div
+              key={s.version}
+              className={`herolog-item ${s.version === activeStep.version ? 'highlight' : ''}`}
+              style={{ '--c': heatForVersion(s.version) }}
+              onClick={() => handleSelectVersion(s.version - 1)}
+              role="button"
+              tabIndex={0}
+            >
+              <span className="herolog-dot" aria-hidden="true" />
+              <div className="herolog-item-content">
+                <div className="herolog-item-top">
+                  <span className="herolog-v-tag">v{s.version}.0</span>
+                  <span className="herolog-author-tag">
+                    <Avatar name={s.who} size={15} />
+                    <span>{s.who}</span>
+                  </span>
+                  <span className="herolog-stage-text">{stageLabel(s.stage)}</span>
+                </div>
+                <p className="herolog-summary-text">{s.summary}</p>
+              </div>
             </div>
-          </li>
-        )).reverse()}
-      </ol>
+          )).reverse()}
+        </div>
+      </div>
     </figure>
   );
 }

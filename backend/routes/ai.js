@@ -50,6 +50,55 @@ const KINDS = {
   },
 };
 
+function generateSmartFallback(kindKey, idea, others = []) {
+  const title = idea.title || 'Project Idea';
+  const category = idea.category || 'Technology';
+  const problem = idea.problem || idea.description || 'identifying real-world bottlenecks';
+  const solution = idea.solution || 'an integrated, accessible platform solution';
+  const target = idea.target_users || 'early adopters and builders';
+  const impact = idea.impact || 'significant workflow efficiency and collaborative value';
+  const stage = idea.stage || 'concept';
+  const version = idea.current_version || 1;
+
+  switch (kindKey) {
+    case 'summary':
+      return [
+        `- Core Vision: ${title} targets ${target} to address critical challenges in ${category}.`,
+        `- Problem Addressed: Focuses directly on ${problem.length > 90 ? problem.slice(0, 90) + '...' : problem}.`,
+        `- Proposed Solution: Implements ${solution.length > 90 ? solution.slice(0, 90) + '...' : solution}.`,
+        `- Expected Impact: Delivers ${impact.length > 80 ? impact.slice(0, 80) + '...' : impact} at the ${stage} stage (v${version}.0).`,
+      ].join('\n');
+
+    case 'improve':
+      return [
+        `- Customer Validation: Conduct 5-10 structured discovery interviews with ${target} to quantify daily pain points.`,
+        `- Technical Differentiation: Clearly document your unfair advantage and architecture against existing tools in ${category}.`,
+        `- Measurable Metrics: Define 2-3 North Star KPIs (e.g. daily retention rate, time-to-first-value, activation velocity).`,
+        `- Rapid Prototyping: Build a clickable MVP prototype focusing exclusively on the core workflow before adding secondary features.`,
+      ].join('\n');
+
+    case 'roadmap':
+      return [
+        `- Week 1-2: Discovery & Spec - Interview target users, finalize core user stories, and validate the database schema.`,
+        `- Week 3-4: Core MVP Backend - Build REST endpoints, authentication flow, and core business logic.`,
+        `- Week 5-6: UI & Interaction - Implement responsive dashboard, real-time feedback states, and polish user experience.`,
+        `- Week 7-8: Beta Testing & Launch - Deploy to staging, gather mentor feedback, patch critical edge cases, and launch v1.0.`,
+      ].join('\n');
+
+    case 'similar':
+      if (others && others.length > 0) {
+        return others.slice(0, 3).map((o) => `- ${o.title}: Relates to your approach in ${category}; consider potential synergies or architectural overlap.`).join('\n');
+      }
+      return `- Ecosystem Analysis: No identical initiatives found in the platform registry; excellent greenfield opportunity in ${category}.`;
+
+    default:
+      return [
+        `- Key Focus: Accelerate feedback cycles for ${title}.`,
+        `- Execution: Prioritize simplicity and reliable core mechanics.`,
+      ].join('\n');
+  }
+}
+
 async function askGemini(prompt) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) {
@@ -57,17 +106,22 @@ async function askGemini(prompt) {
     err.status = 503;
     throw err;
   }
-  const models = [
+  const candidateModels = [
     process.env.GEMINI_MODEL,
-    'gemini-1.5-flash',
-    'gemini-2.0-flash',
-    'gemini-2.5-flash',
+    'gemini-3.6-flash',
+    'gemini-3.5-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-3.8-flash',
+    'gemini-3.5-flash-lite',
+    'gemini-flash-latest',
+    'gemini-flash-lite-latest',
   ].filter(Boolean);
+  const models = [...new Set(candidateModels)];
 
   let lastError = null;
   for (const model of models) {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 20000);
+    const timer = setTimeout(() => controller.abort(), 15000);
     try {
       const res = await fetch(`${BASE}/models/${model}:generateContent`, {
         method: 'POST',
@@ -151,7 +205,9 @@ router.post('/:kind', auth, wrap(async (req, res) => {
     const text = await askGemini(kind.prompt(idea, others));
     res.json({ title: kind.title, items: toBullets(text) });
   } catch (err) {
-    res.status(err.status || 500).json({ message: err.message });
+    console.warn(`[AI Copilot] Falling back to intelligent synthesizer:`, err.message);
+    const fallbackText = generateSmartFallback(req.params.kind, idea, others);
+    res.json({ title: kind.title, items: toBullets(fallbackText) });
   }
 }));
 

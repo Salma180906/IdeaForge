@@ -34,10 +34,10 @@
 /* Hero Section: Asymmetric Editorial Composition */
 .land-hero {
   display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: 56px;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 48px;
   align-items: center;
-  padding: 64px 0 72px;
+  padding: 56px 0 68px;
   position: relative;
 }
 
@@ -46,6 +46,7 @@
   flex-direction: column;
   position: relative;
   z-index: 2;
+  max-width: 600px;
 }
 
 .hero-eyebrow {
@@ -67,19 +68,22 @@
 }
 
 .land-hero h1 {
-  font-size: clamp(38px, 4.8vw, 64px);
+  font-size: clamp(38px, 4.4vw, 58px);
   font-weight: 850;
-  letter-spacing: -0.04em;
-  line-height: 1.05;
+  letter-spacing: -0.035em;
+  line-height: 1.14;
   color: var(--ink);
+  margin: 18px 0 16px;
+  text-wrap: balance;
 }
 
 .land-hero p {
-  margin-top: 20px;
-  font-size: 19px;
-  line-height: 1.55;
+  margin: 0 0 28px;
+  font-size: 18px;
+  line-height: 1.62;
   color: var(--ink-2);
-  max-width: 48ch;
+  max-width: 530px;
+  text-wrap: pretty;
 }
 
 .land-cta {
@@ -87,7 +91,33 @@
   gap: 12px;
   flex-wrap: wrap;
   align-items: center;
-  margin-top: 32px;
+  margin-top: 4px;
+}
+
+.hero-trust-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-top: 26px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.hero-trust-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.hero-trust-item .trust-icon {
+  color: var(--ok, #10b981);
 }
 
 /* Telemetry Ledger Ticker */
