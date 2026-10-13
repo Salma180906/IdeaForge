@@ -42,6 +42,7 @@ app.get('/', (req, res) => res.json({ message: 'IdeaForge API is running' }));
 
 // Everything under /api: rate limited, and never stored in a shared cache.
 app.use('/api', globalLimiter, (req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
+app.get('/api', (req, res) => res.json({ status: 'ok', message: 'IdeaForge API Gateway is active', version: '2.0.0' }));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/ideas', require('./routes/ideas'));
 app.use('/api/comments', require('./routes/comments'));
