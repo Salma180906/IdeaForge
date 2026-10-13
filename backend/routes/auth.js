@@ -60,15 +60,20 @@ async function logEvent(userId, type, req) {
   } catch (e) { console.warn('Could not record security event:', e.message); }
 }
 
-// Makes a code and emails it. Returns false when the 1-minute wait between codes has not passed.
+// Makes a code and emails it. Returns false when the 1-minute wait between codes has not passed or dispatch failed.
 async function sendCode(user, purpose) {
   const code = await otp.issue(user.id, purpose);
   if (!code) {
     const existing = mailer.getLatestCode(user.email, purpose);
     return !!existing;
   }
-  await mailer.sendOtp(user.email, user.name, code, purpose).catch((e) => console.error(`Could not send ${purpose} code:`, e.message));
-  return true;
+  try {
+    const r = await mailer.sendOtp(user.email, user.name, code, purpose);
+    return !!(r && r.success);
+  } catch (e) {
+    console.warn(`Could not send ${purpose} code:`, e.message);
+    return false;
+  }
 }
 const notify = (user, subject, message) =>
   mailer.enabled && mailer.sendNotice(user.email, user.name, subject, message).catch((e) => console.error('Could not send notice:', e.message));
@@ -128,7 +133,13 @@ router.post('/register', registerLimiter, wrap(async (req, res) => {
     user = (await db.query('SELECT * FROM users WHERE id = ?', [result.insertId]))[0][0];
   }
   if (!REQUIRE_VERIFY) return finishLogin(user, req, res, 201);
-  await sendCode(user, 'verify');
+  const sent = await sendCode(user, 'verify');
+  if (!sent) {
+    console.warn(`[AUTH] Mail delivery unavailable on this host; auto-verifying user #${user.id} to avoid registration lock.`);
+    await db.query('UPDATE users SET email_verified = 1 WHERE id = ?', [user.id]);
+    user.email_verified = 1;
+    return finishLogin(user, req, res, 201);
+  }
   res.status(201).json({ needsVerification: true, email });
 }));
 

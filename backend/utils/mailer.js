@@ -24,6 +24,9 @@ function initConfiguredTransporter() {
           user: env.GMAIL_USER.trim(),
           pass: env.GMAIL_PASS.replace(/\s+/g, ''),
         },
+        connectionTimeout: 4000,
+        greetingTimeout: 4000,
+        socketTimeout: 5000,
       });
       console.log(`[MAILER] Gmail SMTP initialized for ${env.GMAIL_USER}`);
       return;
@@ -39,6 +42,9 @@ function initConfiguredTransporter() {
         port: Number(env.SMTP_PORT) || 587,
         secure: env.SMTP_SECURE === 'true' || Number(env.SMTP_PORT) === 465,
         auth: env.SMTP_USER ? { user: env.SMTP_USER.trim(), pass: (env.SMTP_PASS || '').trim() } : undefined,
+        connectionTimeout: 4000,
+        greetingTimeout: 4000,
+        socketTimeout: 5000,
       });
       console.log(`[MAILER] Custom SMTP transport initialized for ${env.SMTP_HOST}`);
       return;
@@ -162,13 +168,16 @@ async function send({ to, subject, text, html, code, purpose, name }) {
   // 3. SMTP / Gmail
   if (smtpTransporter) {
     try {
-      const info = await smtpTransporter.sendMail({
-        from: `"${fromName}" <${fromEmail}>`,
-        to,
-        subject,
-        text,
-        html,
-      });
+      const info = await Promise.race([
+        smtpTransporter.sendMail({
+          from: `"${fromName}" <${fromEmail}>`,
+          to,
+          subject,
+          text,
+          html,
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP connection timed out')), 5000)),
+      ]);
       const provider = env.GMAIL_USER ? 'gmail' : 'smtp';
       console.log(`[MAILER] Sent via ${provider}: ${info.messageId}`);
       return { success: true, provider, id: info.messageId };
