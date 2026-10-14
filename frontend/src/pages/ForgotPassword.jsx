@@ -14,9 +14,6 @@ export default function ForgotPassword() {
   const [step, setStep] = useState('email');
   const [email, setEmail] = useState('');
   const [resetToken, setResetToken] = useState('');
-  const [initialCode, setInitialCode] = useState(null);
-  const [initialPreviewUrl, setInitialPreviewUrl] = useState(null);
-  const [initialProvider, setInitialProvider] = useState(null);
   const [pw, setPw] = useState({ next: '', again: '' });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -25,10 +22,7 @@ export default function ForgotPassword() {
     e.preventDefault();
     setBusy(true); setError('');
     try {
-      const res = await api.post('/auth/forgot', { email });
-      if (res?.previewCode) setInitialCode(res.previewCode);
-      if (res?.previewUrl) setInitialPreviewUrl(res.previewUrl);
-      if (res?.provider) setInitialProvider(res.provider);
+      await api.post('/auth/forgot', { email });
       setStep('code');
     } catch (err) { setError(err.message); }
     setBusy(false);
@@ -49,9 +43,6 @@ export default function ForgotPassword() {
         <CodeStep
           title="Check your email"
           email={email}
-          initialCode={initialCode}
-          initialPreviewUrl={initialPreviewUrl}
-          initialProvider={initialProvider}
           submitLabel="Continue"
           onSubmit={async (code) => { const r = await api.post('/auth/reset/verify', { email, code }); setResetToken(r.resetToken); setStep('password'); }}
           onResend={() => api.post('/auth/forgot', { email })}

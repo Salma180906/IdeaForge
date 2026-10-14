@@ -12,9 +12,8 @@ export default function CodeStep({
   onBack,
   submitLabel = 'Confirm code',
   method = 'email',
-  initialCode = null,
 }) {
-  const [code, setCode] = useState(initialCode || '');
+  const [code, setCode] = useState('');
   const [backupMode, setBackupMode] = useState(false);
   const [backupText, setBackupText] = useState('');
   const [error, setError] = useState('');

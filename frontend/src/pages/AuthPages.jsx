@@ -130,19 +130,17 @@ export function Register() {
     try {
       const r = await register(form.name, form.email, form.password);
       if (r.done) navigate('/dashboard');
-      else if (r.needsVerification) setVerify(r);
+      else if (r.needsVerification) setVerify(r.email);
     } catch (err) { setError(err.message); }
     setBusy(false);
   };
 
   if (verify) {
-    const targetEmail = typeof verify === 'object' ? verify.email : verify;
-    const initialCode = typeof verify === 'object' ? verify.devCode : null;
     return (
       <AuthShell>
-        <CodeStep title="Confirm your email" email={targetEmail} submitLabel="Confirm and continue" initialCode={initialCode}
-          onSubmit={async (code) => { await verifyEmail(targetEmail, code); navigate('/dashboard'); }}
-          onResend={() => api.post('/auth/resend-code', { purpose: 'verify', email: targetEmail })}
+        <CodeStep title="Confirm your email" email={verify} submitLabel="Confirm and continue"
+          onSubmit={async (code) => { await verifyEmail(verify, code); navigate('/dashboard'); }}
+          onResend={() => api.post('/auth/resend-code', { purpose: 'verify', email: verify })}
           onBack={() => setVerify(null)} />
       </AuthShell>
     );

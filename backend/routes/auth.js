@@ -133,11 +133,10 @@ router.post('/register', registerLimiter, wrap(async (req, res) => {
     user = (await db.query('SELECT * FROM users WHERE id = ?', [result.insertId]))[0][0];
   }
 
-  const outcome = await sendCode(user, 'verify');
+  await sendCode(user, 'verify');
   res.status(201).json({
     needsVerification: true,
     email,
-    devCode: outcome && !outcome.ok ? outcome.code : null,
   });
 }));
 
@@ -215,13 +214,9 @@ router.post('/forgot', otpSendLimiter, wrap(async (req, res) => {
   const email = v.email(req.body.email);
   const user = await getUserByEmail(email);
   if (user) await sendCode(user, 'reset');
-  const latest = mailer.getLatestCode(email, 'reset');
   res.json({
     ok: true,
     message: 'If an account exists for that email, a code has been sent.',
-    previewCode: latest ? latest.code : null,
-    previewUrl: latest ? latest.previewUrl : null,
-    provider: latest ? latest.provider : null,
   });
 }));
 
