@@ -18,6 +18,7 @@ export default function CodeStep({
   const [backupText, setBackupText] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const submittingRef = useRef(false);
   const [shake, setShake] = useState(0);
   const [wait, setWait] = useState(method === 'app' ? 0 : 60);
   const [resent, setResent] = useState(false);
@@ -29,7 +30,8 @@ export default function CodeStep({
   }, [wait]);
 
   const submit = async (value) => {
-    if (busy) return;
+    if (busy || submittingRef.current) return;
+    submittingRef.current = true;
     sound.click();
     setBusy(true);
     setError('');
@@ -41,6 +43,7 @@ export default function CodeStep({
       setCode('');
       setShake((n) => n + 1);
       setBusy(false);
+      submittingRef.current = false;
     }
   };
 
