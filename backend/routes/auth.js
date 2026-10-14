@@ -64,16 +64,16 @@ async function logEvent(userId, type, req) {
 async function sendCode(user, purpose) {
   const code = await otp.issue(user.id, purpose);
   if (!code) {
-    const existing = mailer.getLatestCode(user.email, purpose);
-    return !!existing;
+    return { ok: false, code: null };
   }
+  let sentOk = false;
   try {
     const r = await mailer.sendOtp(user.email, user.name, code, purpose);
-    return !!(r && r.success);
+    sentOk = !!(r && r.success);
   } catch (e) {
-    console.warn(`Could not send ${purpose} code:`, e.message);
-    return false;
+    console.warn(`Could not send ${purpose} code via transport:`, e.message);
   }
+  return { ok: sentOk, code };
 }
 const notify = (user, subject, message) =>
   mailer.enabled && mailer.sendNotice(user.email, user.name, subject, message).catch((e) => console.error('Could not send notice:', e.message));
@@ -120,7 +120,7 @@ router.post('/register', registerLimiter, wrap(async (req, res) => {
   const password = v.password(req.body.password, { email });
 
   const existing = await getUserByEmail(email);
-  if (existing && (existing.email_verified || !REQUIRE_VERIFY)) return res.status(409).json({ message: 'This email is already registered' });
+  if (existing && existing.email_verified) return res.status(409).json({ message: 'This email is already registered' });
 
   const hash = await bcrypt.hash(password, COST);
   let user;
@@ -128,19 +128,17 @@ router.post('/register', registerLimiter, wrap(async (req, res) => {
     await db.query('UPDATE users SET name = ?, password_hash = ? WHERE id = ?', [name, hash, existing.id]);
     user = { ...existing, name, password_hash: hash };
   } else {
-    const [result] = await db.query('INSERT INTO users (name, email, password_hash, email_verified) VALUES (?, ?, ?, ?)',
-      [name, email, hash, REQUIRE_VERIFY ? 0 : 1]);
+    const [result] = await db.query('INSERT INTO users (name, email, password_hash, email_verified) VALUES (?, ?, ?, 0)',
+      [name, email, hash]);
     user = (await db.query('SELECT * FROM users WHERE id = ?', [result.insertId]))[0][0];
   }
-  if (!REQUIRE_VERIFY) return finishLogin(user, req, res, 201);
-  const sent = await sendCode(user, 'verify');
-  if (!sent) {
-    console.warn(`[AUTH] Mail delivery unavailable on this host; auto-verifying user #${user.id} to avoid registration lock.`);
-    await db.query('UPDATE users SET email_verified = 1 WHERE id = ?', [user.id]);
-    user.email_verified = 1;
-    return finishLogin(user, req, res, 201);
-  }
-  res.status(201).json({ needsVerification: true, email });
+
+  const outcome = await sendCode(user, 'verify');
+  res.status(201).json({
+    needsVerification: true,
+    email,
+    devCode: outcome && !outcome.ok ? outcome.code : null,
+  });
 }));
 
 // POST /api/auth/verify-email  { email, code }

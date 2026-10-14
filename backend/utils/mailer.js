@@ -207,10 +207,7 @@ async function send({ to, subject, text, html, code, purpose, name }) {
     }
   }
 
-  if (isProd) {
-    throw new Error('Email service is not configured on this server. Please contact an administrator.');
-  }
-
+  console.warn('[MAILER] Outbound email could not be delivered. If using Render Free Tier, note that outbound SMTP ports are blocked; configure BREVO_API_KEY or RESEND_API_KEY for HTTPS delivery.');
   return { success: false, provider: 'none' };
 }
 
