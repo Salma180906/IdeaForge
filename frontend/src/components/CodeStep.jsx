@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { MailCheck, Smartphone, ArrowLeft } from 'lucide-react';
 import OtpInput from './OtpInput';
 import { ErrorBox } from './ui';
